@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phone Controller</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; text-align: center; margin-top: 50px; background-color: #222; color: white;}
+        input { font-size: 20px; padding: 10px; margin: 10px; border-radius: 5px; text-align: center; }
+        button { font-size: 20px; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold;}
+        #gameplay { display: none; }
+        #buzzBtn { background-color: #ff3333; color: white; border-radius: 50%; width: 250px; height: 250px; font-size: 40px; border: 5px solid darkred; margin-top: 50px;}
+        #buzzBtn:active { background-color: #cc0000; }
+    </style>
+</head>
+<body>
+    <div id="setup">
+        <h2>Join the Game</h2>
+        <input type="text" id="roomCode" placeholder="4-Letter Code" maxlength="4"><br>
+        <input type="text" id="playerName" placeholder="Your Name"><br>
+        <button onclick="joinRoom()">CONNECT</button>
+    </div>
+
+    <div id="gameplay">
+        <h2 id="statusText">Connected!</h2>
+        <button id="buzzBtn" onclick="sendPing()">BUZZ</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
