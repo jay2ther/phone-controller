@@ -35,10 +35,10 @@ function joinRoom() {
     }));
 }
 
-// Triggered by the BUZZ button
-function sendPing() {
+// Send whatever command the button triggers
+function sendCommand(cmd) {
     ws.send(JSON.stringify({
         action: "button_press",
-        payload: { action: "ping" }
+        payload: { action: cmd }
     }));
 }
