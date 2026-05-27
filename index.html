@@ -20,9 +20,27 @@
         <button onclick="joinRoom()">CONNECT</button>
     </div>
 
-    <div id="gameplay">
+<div id="gameplay" style="display:none; text-align:center; margin-top: 20px;">
         <h2 id="statusText">Connected!</h2>
-        <button id="buzzBtn" onclick="sendPing()">BUZZ</button>
+        
+        <button onmousedown="sendCommand('jump')" ontouchstart="sendCommand('jump')" 
+                style="width:90%; height:120px; font-size:30px; background:#4CAF50; color:white; border-radius:10px; margin-bottom:20px;">
+            JUMP
+        </button>
+        
+        <br>
+        
+        <button onmousedown="sendCommand('left')" onmouseup="sendCommand('stop')" 
+                ontouchstart="sendCommand('left')" ontouchend="sendCommand('stop')" 
+                style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:5%;">
+            LEFT
+        </button>
+        
+        <button onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')" 
+                ontouchstart="sendCommand('right')" ontouchend="sendCommand('stop')" 
+                style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px;">
+            RIGHT
+        </button>
     </div>
 
     <script src="app.js"></script>
