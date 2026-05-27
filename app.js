@@ -1,5 +1,5 @@
 // Connect to the Middleman running locally on your PC
-const ws = new WebSocket('https://my-party-server-9xm3.onrender.com');
+const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
 // When we successfully connect to the server...
 ws.onopen = () => {
