@@ -1,7 +1,7 @@
-// 1. CONNECT TO THE CLOUD
+// 1. CONNECT TO THE CLOUD (Swap this link if your Render URL changes)
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
-// 2. AUTO-FILL LOGIN MEMORY (CRASH-PROOFED)
+// 2. AUTO-FILL LOGIN MEMORY
 window.onload = () => {
     try {
         const savedName = localStorage.getItem("playerName");
@@ -12,16 +12,16 @@ window.onload = () => {
             document.getElementById('roomCode').value = savedCode;
         }
     } catch (e) {
-        console.log("Browser blocked memory read, but buttons will still work!");
+        console.log("Browser privacy rules blocked reading local storage.");
     }
 };
 
-// 3. LISTEN FOR GODOT'S WHISPERS
+// 3. LISTEN FOR NETWORK COMMANDS FROM GODOT
 ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
-    // When Godot hands us our money from the Bank
+    // A: Godot loaded our profile profile from the hard drive
     if (data.action === "profile_loaded") {
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         document.getElementById('betSlider').max = data.currency;
@@ -29,33 +29,45 @@ ws.onmessage = (event) => {
         const playerName = localStorage.getItem("playerName");
         document.getElementById('statusText').innerText = "Welcome, " + playerName + "!";
         
-        // Swap to the Betting screen
         document.getElementById('login').style.display = 'none';
         document.getElementById('bettingScreen').style.display = 'block';
     }
+    
+    // B: Godot says it is actively our turn
+    else if (data.action === "your_turn") {
+        document.getElementById('waitingScreen').style.display = 'none';
+        document.getElementById('actionScreen').style.display = 'block';
+    }
+    
+    // C: Godot says it is someone else's turn
+    else if (data.action === "wait_turn") {
+        document.getElementById('actionScreen').style.display = 'none';
+        document.getElementById('waitingScreen').style.display = 'block';
+        
+        // Dynamically overwrite the waiting room text to show who is playing
+        document.getElementById('waitingContent').innerHTML = 
+            "<h2 style='color:#666;'>Waiting...</h2><p style='font-size:20px;'>" + data.active_player + " is making a move.</p>";
+    }
 };
 
-// 4. JOIN THE GAME (BULLETPROOF VERSION)
+// 4. THE LOGIN FORM ACTION
 function joinGame() {
     const nameInput = document.getElementById('playerName').value;
     const codeInput = document.getElementById('roomCode').value.toUpperCase();
     
     if (nameInput && codeInput) {
-        // Safety Check: Is the server actually awake yet?
         if (ws.readyState !== WebSocket.OPEN) {
             alert("Still connecting to the cloud... please try again in 2 seconds!");
             return; 
         }
 
-        // Safety Check: Save memory (Wrapped in try/catch for strict private browsers)
         try {
             localStorage.setItem("playerName", nameInput);
             localStorage.setItem("roomCode", codeInput);
         } catch (e) {
-            console.log("Private browsing blocking save.");
+            console.log("Browser privacy rules blocked writing local storage.");
         }
         
-        // Send the join request to the cloud
         ws.send(JSON.stringify({
             action: "join_room",
             room_code: codeInput,
@@ -67,22 +79,19 @@ function joinGame() {
     }
 }
 
-// 5. BETTING LOGIC
-
-// Updates the giant text number as you drag the slider
+// 5. THE SLIDER ACTION
 function updateBetDisplay() {
     const sliderValue = document.getElementById('betSlider').value;
     document.getElementById('betDisplay').innerText = "$" + sliderValue;
 }
 
-// Sends the bet to Godot and transitions to the Waiting screen
+// 6. LOCK IN BET ACTION
 function placeBet() {
     const betAmount = document.getElementById('betSlider').value;
     const myName = localStorage.getItem("playerName");
     
-    // Send the name AND the amount
     ws.send(JSON.stringify({
-        action: "button_press",   // <--- THIS WAS THE BUG! Change this back to button_press!
+        action: "button_press",
         payload: { 
             action: "place_bet", 
             amount: parseInt(betAmount),
@@ -90,7 +99,23 @@ function placeBet() {
         }
     }));
     
-    // Hide the slider, show the waiting message
+    // Reset waiting text back to default layout before screen swap
+    document.getElementById('waitingContent').innerHTML = 
+        "<h2>Bet Locked!</h2><p style='font-size: 20px;'>Look at the TV, waiting for others...</p>";
+        
     document.getElementById('bettingScreen').style.display = 'none';
     document.getElementById('waitingScreen').style.display = 'block';
+}
+
+// 7. HIT / STAND MOVES ACTION
+function sendAction(choice) {
+    const myName = localStorage.getItem("playerName");
+    
+    ws.send(JSON.stringify({
+        action: "button_press",
+        payload: { 
+            action: choice, 
+            name: myName 
+        }
+    }));
 }
