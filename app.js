@@ -1,20 +1,34 @@
 // Connect to the Middleman running locally on your PC
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
+// NEW: When the page loads, check if they were already playing
+window.onload = () => {
+    const savedName = sessionStorage.getItem("playerName");
+    const savedCode = sessionStorage.getItem("roomCode");
+    
+    // If memory exists, auto-fill the boxes!
+    if (savedName && savedCode) {
+        document.getElementById('playerName').value = savedName;
+        document.getElementById('roomCode').value = savedCode;
+    }
+};
+
 // NEW: The function that runs when they tap JOIN GAME
 function joinGame() {
     const nameInput = document.getElementById('playerName').value;
     const codeInput = document.getElementById('roomCode').value.toUpperCase();
     
     if (nameInput && codeInput) {
-        // Send the name and code to the cloud
+        // NEW: Save their info into the browser's session memory
+        sessionStorage.setItem("playerName", nameInput);
+        sessionStorage.setItem("roomCode", codeInput);
+        
         ws.send(JSON.stringify({
             action: "join_room",
             room_code: codeInput,
             name: nameInput
         }));
         
-        // Hide the login screen, show the buttons
         document.getElementById('login').style.display = 'none';
         document.getElementById('gameplay').style.display = 'block';
         document.getElementById('statusText').innerText = "Welcome, " + nameInput + "!";
