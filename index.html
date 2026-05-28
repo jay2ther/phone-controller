@@ -9,6 +9,19 @@
         body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; transition: 0.3s; }
         input { color: CanvasText; background-color: Canvas; }
         
+        /* NEW: The Tactile Button Physics */
+        button {
+            transition: transform 0.05s ease, filter 0.05s ease; /* Lightning fast animation */
+            -webkit-tap-highlight-color: transparent; /* Removes default phone tap flash */
+            cursor: pointer;
+        }
+        
+        /* NEW: What happens the exact moment you press down */
+        button:active {
+            transform: scale(0.92); /* Shrinks the button by 8% */
+            filter: brightness(0.8); /* Dims the color slightly */
+        }
+        
         /* DARK MODE COLORS */
         @media (prefers-color-scheme: dark) {
             body { background-color: #121212; color: #ffffff; }
