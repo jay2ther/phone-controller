@@ -22,6 +22,7 @@ ws.onmessage = (event) => {
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
     // A: Godot loaded our profile profile from the hard drive
+// A: Godot loaded our profile profile from the hard drive
     if (data.action === "profile_loaded") {
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         document.getElementById('betSlider').max = data.currency;
@@ -29,7 +30,12 @@ ws.onmessage = (event) => {
         const playerName = localStorage.getItem("playerName");
         document.getElementById('statusText').innerText = "Welcome, " + playerName + "!";
         
+        // NEW: Hide EVERYTHING else so we can loop back cleanly
         document.getElementById('login').style.display = 'none';
+        document.getElementById('waitingScreen').style.display = 'none';
+        document.getElementById('actionScreen').style.display = 'none';
+        
+        // Show the Betting Screen again
         document.getElementById('bettingScreen').style.display = 'block';
     }
     
