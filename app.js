@@ -1,14 +1,18 @@
 // 1. CONNECT TO THE CLOUD
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
-// 2. AUTO-FILL LOGIN MEMORY
+// 2. AUTO-FILL LOGIN MEMORY (CRASH-PROOFED)
 window.onload = () => {
-    const savedName = localStorage.getItem("playerName");
-    const savedCode = localStorage.getItem("roomCode");
-    
-    if (savedName && savedCode) {
-        document.getElementById('playerName').value = savedName;
-        document.getElementById('roomCode').value = savedCode;
+    try {
+        const savedName = localStorage.getItem("playerName");
+        const savedCode = localStorage.getItem("roomCode");
+        
+        if (savedName && savedCode) {
+            document.getElementById('playerName').value = savedName;
+            document.getElementById('roomCode').value = savedCode;
+        }
+    } catch (e) {
+        console.log("Browser blocked memory read, but buttons will still work!");
     }
 };
 
