@@ -69,13 +69,15 @@ function updateBetDisplay() {
 // Sends the bet to Godot and transitions to the Waiting screen
 function placeBet() {
     const betAmount = document.getElementById('betSlider').value;
+    const myName = localStorage.getItem("playerName"); // NEW: Grab their name!
     
-    // Send the "place_bet" command to Godot
+    // Send the name AND the amount
     ws.send(JSON.stringify({
         action: "player_input",
         payload: { 
             action: "place_bet", 
-            amount: parseInt(betAmount) 
+            amount: parseInt(betAmount),
+            name: myName
         }
     }));
     
