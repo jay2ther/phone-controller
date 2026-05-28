@@ -1,6 +1,17 @@
 // Connect to the Middleman running locally on your PC
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
+// NEW: Listen for messages coming DOWN from the Cloud/Godot
+ws.onmessage = (event) => {
+    let data;
+    try { data = JSON.parse(event.data); } catch (e) { return; }
+    
+    // If Godot sends us our profile data, update the screen!
+    if (data.action === "profile_loaded") {
+        document.getElementById('bankText').innerText = "Bank: $" + data.currency;
+    }
+};
+
 // NEW: When the page loads, check if they were already playing
 window.onload = () => {
     const savedName = sessionStorage.getItem("playerName");
