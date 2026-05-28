@@ -9,20 +9,19 @@
         body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; transition: 0.3s; }
         input { color: CanvasText; background-color: Canvas; }
         
-        /* NEW: The Tactile Button Physics */
+        /* Tactile Button Animations (The "Squish" Effect) */
         button {
-            transition: transform 0.05s ease, filter 0.05s ease; /* Lightning fast animation */
-            -webkit-tap-highlight-color: transparent; /* Removes default phone tap flash */
+            transition: transform 0.05s ease, filter 0.05s ease;
+            -webkit-tap-highlight-color: transparent;
             cursor: pointer;
         }
         
-        /* NEW: What happens the exact moment you press down */
         button:active {
-            transform: scale(0.92); /* Shrinks the button by 8% */
-            filter: brightness(0.8); /* Dims the color slightly */
+            transform: scale(0.92); /* Shrinks slightly on press */
+            filter: brightness(0.8); /* Dims slightly on press */
         }
         
-        /* DARK MODE COLORS */
+        /* Dark Mode Color Mapping */
         @media (prefers-color-scheme: dark) {
             body { background-color: #121212; color: #ffffff; }
             h2, p { color: #cccccc; }
@@ -66,10 +65,19 @@
     </div>
 
     <div id="waitingScreen" style="display:none; margin-top: 100px;">
-        <h2>Bet Locked!</h2>
-        <p style="font-size: 20px;">Look at the TV, waiting for others...</p>
+        <div id="waitingContent">
+            <h2>Bet Locked!</h2>
+            <p style="font-size: 20px;">Look at the TV, waiting for others...</p>
+        </div>
     </div>
 
-    <script src="app.js?v=5"></script>
+    <div id="actionScreen" style="display:none; margin-top: 50px;">
+        <h2 style="color: #2196F3; font-size: 35px;">It's Your Turn!</h2>
+        <br>
+        <button onclick="sendAction('hit')" style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:5%; border:none; font-weight:bold;">HIT</button>
+        <button onclick="sendAction('stand')" style="width:40%; height:120px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">STAND</button>
+    </div>
+
+    <script src="app.js?v=6"></script>
 </body>
 </html>
