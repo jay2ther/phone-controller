@@ -13,41 +13,46 @@
     </style>
 </head>
 <body>
-    <div id="setup">
-        <h2>Join the Game</h2>
-        <input type="text" id="roomCode" placeholder="4-Letter Code" maxlength="4"><br>
-        <input type="text" id="playerName" placeholder="Your Name"><br>
-        <button onclick="joinRoom()">CONNECT</button>
+    <div id="login" style="text-align:center; margin-top: 50px; font-family: sans-serif;">
+        <h1 style="font-size: 40px; margin-bottom: 10px;">PARTY GAME</h1>
+        <p style="margin-bottom: 30px;">Look at the TV for the Room Code!</p>
+        
+        <input type="text" id="playerName" placeholder="Your Name" 
+               style="font-size:24px; padding:15px; width:80%; margin-bottom:15px; text-align: center; border-radius: 10px; border: 2px solid #ccc;"><br>
+               
+        <input type="text" id="roomCode" placeholder="ROOM CODE" maxlength="4" 
+               style="text-transform:uppercase; font-size:24px; padding:15px; width:80%; margin-bottom:30px; text-align: center; border-radius: 10px; border: 2px solid #ccc;"><br>
+               
+        <button onclick="joinGame()" 
+                style="font-size:24px; padding:20px; width:85%; background:#4CAF50; color:white; border-radius:15px; border: none; font-weight: bold;">
+            JOIN GAME
+        </button>
     </div>
 
-<div id="gameplay" style="display:none; text-align:center; margin-top: 20px;">
-        <h2 id="statusText">Connected!</h2>
+    <div id="gameplay" style="display:none; text-align:center; margin-top: 20px;">
+        <h2 id="statusText" style="font-family: sans-serif;">You're in!</h2>
         
         <button onmousedown="sendCommand('jump')" ontouchstart="sendCommand('jump')" 
-                style="width:90%; height:120px; font-size:30px; background:#4CAF50; color:white; border-radius:10px; margin-bottom:20px;">
+                style="width:90%; height:120px; font-size:30px; background:#4CAF50; color:white; border-radius:10px; margin-bottom:20px; border:none;">
             JUMP
         </button>
-        
         <br>
-        
         <button onmousedown="sendCommand('left')" onmouseup="sendCommand('stop')" 
                 ontouchstart="sendCommand('left')" ontouchend="sendCommand('stop')" 
-                style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:5%;">
+                style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:5%; border:none;">
             LEFT
         </button>
-    
-        <button onmousedown="sendCommand('shoot')" ontouchstart="sendCommand('shoot')" 
-                style="width:90%; height:80px; font-size:30px; background:#f44336; color:white; border-radius:10px; margin-bottom:20px;">
-            SHOOT
-        </button>
-        
         <button onmousedown="sendCommand('right')" onmouseup="sendCommand('stop')" 
                 ontouchstart="sendCommand('right')" ontouchend="sendCommand('stop')" 
-                style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px;">
+                style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; border:none;">
             RIGHT
+        </button>
+        <button onmousedown="sendCommand('shoot')" ontouchstart="sendCommand('shoot')" 
+                style="width:90%; height:80px; font-size:30px; background:#f44336; color:white; border-radius:10px; margin-top:20px; border:none;">
+            SHOOT
         </button>
     </div>
 
     <script src="app.js"></script>
-</body>
+</body>>
 </html>
