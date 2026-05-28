@@ -82,7 +82,7 @@ function placeBet() {
     
     // Send the name AND the amount
     ws.send(JSON.stringify({
-        action: "player_input",
+        action: "button_press",   // <--- THIS WAS THE BUG! Change this back to button_press!
         payload: { 
             action: "place_bet", 
             amount: parseInt(betAmount),
