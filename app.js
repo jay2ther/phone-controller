@@ -1,15 +1,48 @@
 // Connect to the Middleman running locally on your PC
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
-// NEW: Listen for messages coming DOWN from the Cloud/Godot
+// Listen for Godot whispering our bank amount
 ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
-    // If Godot sends us our profile data, update the screen!
     if (data.action === "profile_loaded") {
+        // Update the text
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
+        
+        // Magically restrict the slider so they can't bet more than they have!
+        document.getElementById('betSlider').max = data.currency;
+        
+        // Switch from Login screen to Betting screen
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('bettingScreen').style.display = 'block';
     }
+};
+
+// --- NEW BETTING LOGIC ---
+
+// Updates the giant text number as you drag the slider
+function updateBetDisplay() {
+    const sliderValue = document.getElementById('betSlider').value;
+    document.getElementById('betDisplay').innerText = "$" + sliderValue;
+}
+
+// Sends the bet to Godot and shows the Waiting screen
+function placeBet() {
+    const betAmount = document.getElementById('betSlider').value;
+    
+    ws.send(JSON.stringify({
+        action: "player_input",
+        payload: { 
+            action: "place_bet", 
+            amount: parseInt(betAmount) 
+        }
+    }));
+    
+    // Hide the slider, show the waiting message
+    document.getElementById('bettingScreen').style.display = 'none';
+    document.getElementById('waitingScreen').style.display = 'block';
+}
 };
 
 // NEW: When the page loads, check if they were already playing
