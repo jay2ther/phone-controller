@@ -1,25 +1,64 @@
-// Connect to the Middleman running locally on your PC
+// Make sure this is your actual Render URL!
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
-// Listen for Godot whispering our bank amount
+// --- 1. AUTO-FILL LOGIN MEMORY ---
+window.onload = () => {
+    const savedName = localStorage.getItem("playerName");
+    const savedCode = localStorage.getItem("roomCode");
+    
+    // If they have played before, fill the text boxes for them
+    if (savedName && savedCode) {
+        document.getElementById('playerName').value = savedName;
+        document.getElementById('roomCode').value = savedCode;
+    }
+};
+
+// --- 2. LISTEN FOR GODOT'S WHISPERS ---
 ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
+    // When Godot hands us our money from the Bank
     if (data.action === "profile_loaded") {
-        // Update the text
+        // Update the Bank text
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         
-        // Magically restrict the slider so they can't bet more than they have!
+        // Restrict the slider so they can't bet more than they have
         document.getElementById('betSlider').max = data.currency;
         
-        // Switch from Login screen to Betting screen
+        // Welcome them by name
+        const playerName = localStorage.getItem("playerName");
+        document.getElementById('statusText').innerText = "Welcome, " + playerName + "!";
+        
+        // Swap from the Login screen to the Betting screen
         document.getElementById('login').style.display = 'none';
         document.getElementById('bettingScreen').style.display = 'block';
     }
 };
 
-// --- NEW BETTING LOGIC ---
+// --- 3. JOIN THE GAME ---
+function joinGame() {
+    const nameInput = document.getElementById('playerName').value;
+    const codeInput = document.getElementById('roomCode').value.toUpperCase();
+    
+    if (nameInput && codeInput) {
+        // Save their info into the browser's permanent memory
+        localStorage.setItem("playerName", nameInput);
+        localStorage.setItem("roomCode", codeInput);
+        
+        // Send the join request to the cloud
+        ws.send(JSON.stringify({
+            action: "join_room",
+            room_code: codeInput,
+            name: nameInput
+        }));
+        
+    } else {
+        alert("Please enter a name and room code!");
+    }
+}
+
+// --- 4. BETTING LOGIC ---
 
 // Updates the giant text number as you drag the slider
 function updateBetDisplay() {
@@ -27,10 +66,11 @@ function updateBetDisplay() {
     document.getElementById('betDisplay').innerText = "$" + sliderValue;
 }
 
-// Sends the bet to Godot and shows the Waiting screen
+// Sends the bet to Godot and transitions to the Waiting screen
 function placeBet() {
     const betAmount = document.getElementById('betSlider').value;
     
+    // Send the "place_bet" command to Godot
     ws.send(JSON.stringify({
         action: "player_input",
         payload: { 
@@ -42,91 +82,4 @@ function placeBet() {
     // Hide the slider, show the waiting message
     document.getElementById('bettingScreen').style.display = 'none';
     document.getElementById('waitingScreen').style.display = 'block';
-}
-};
-
-// NEW: When the page loads, check if they were already playing
-window.onload = () => {
-    const savedName = sessionStorage.getItem("playerName");
-    const savedCode = sessionStorage.getItem("roomCode");
-    
-    // If memory exists, auto-fill the boxes!
-    if (savedName && savedCode) {
-        document.getElementById('playerName').value = savedName;
-        document.getElementById('roomCode').value = savedCode;
-    }
-};
-
-// NEW: The function that runs when they tap JOIN GAME
-function joinGame() {
-    const nameInput = document.getElementById('playerName').value;
-    const codeInput = document.getElementById('roomCode').value.toUpperCase();
-    
-    if (nameInput && codeInput) {
-        // NEW: Save their info into the browser's session memory
-        sessionStorage.setItem("playerName", nameInput);
-        sessionStorage.setItem("roomCode", codeInput);
-        
-        ws.send(JSON.stringify({
-            action: "join_room",
-            room_code: codeInput,
-            name: nameInput
-        }));
-        
-        document.getElementById('login').style.display = 'none';
-        document.getElementById('gameplay').style.display = 'block';
-        document.getElementById('statusText').innerText = "Welcome, " + nameInput + "!";
-    } else {
-        alert("Please enter a name and room code!");
-    }
-}
-
-// Keep your existing sendCommand(cmd) function down here...
-function sendCommand(cmd) {
-    ws.send(JSON.stringify({
-        action: "button_press",
-        payload: { action: cmd }
-    }));
-}
-
-// When we successfully connect to the server...
-ws.onopen = () => {
-    console.log("Connected to the Traffic Cop!");
-};
-
-// When the server talks back to us...
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    console.log("Server says:", data);
-
-    if (data.action === "joined") {
-        // Success! Hide the login screen, show the big red button
-        document.getElementById("setup").style.display = "none";
-        document.getElementById("gameplay").style.display = "block";
-    } 
-    else if (data.action === "error") {
-        // The server rejected us (e.g., wrong code)
-        alert("Error: " + data.message); 
-    }
-};
-
-// Triggered by the CONNECT button
-function joinRoom() {
-    const code = document.getElementById("roomCode").value;
-    const name = document.getElementById("playerName").value;
-
-    // Send a JSON text envelope to the server asking to join
-    ws.send(JSON.stringify({
-        action: "join_room",
-        room_code: code,
-        name: name
-    }));
-}
-
-// Send whatever command the button triggers
-function sendCommand(cmd) {
-    ws.send(JSON.stringify({
-        action: "button_press",
-        payload: { action: cmd }
-    }));
 }
