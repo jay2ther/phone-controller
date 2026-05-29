@@ -1,5 +1,10 @@
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
+// --- NEW: THE TAB'S PERSONAL MEMORY ---
+// This variable stays trapped inside this specific tab!
+let mySessionName = ""; 
+// --------------------------------------
+
 window.onload = () => {
     try {
         const savedName = localStorage.getItem("playerName");
@@ -11,20 +16,17 @@ window.onload = () => {
     } catch (e) {}
 };
 
-// --- LISTEN FOR NETWORK COMMANDS ---
 ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
-    // A: Player profile successfully fetched from the bank
     if (data.action === "profile_loaded") {
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         document.getElementById('betSlider').max = data.currency;
         
-        const playerName = localStorage.getItem("playerName");
-        document.getElementById('statusText').innerText = "Welcome, " + playerName + "!";
+        // Welcome them using their specific tab's name
+        document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
         
-        // NEW FIX: Hide login, but route them straight to the waiting room!
         document.getElementById('login').style.display = 'none';
         document.getElementById('bettingScreen').style.display = 'none';
         document.getElementById('actionScreen').style.display = 'none';
@@ -34,21 +36,17 @@ ws.onmessage = (event) => {
             "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
     }
     
-    // NEW FIX: Listen for the Dealer to explicitly open betting
     else if (data.action === "phase_changed") {
         if (data.phase === "BETTING") {
-            // Reset slider defaults for the new round
             document.getElementById('betSlider').value = 10;
             document.getElementById('betDisplay').innerText = "$10";
             
-            // Unveil the betting slider!
             document.getElementById('waitingScreen').style.display = 'none';
             document.getElementById('actionScreen').style.display = 'none';
             document.getElementById('bettingScreen').style.display = 'block';
         }
     }
     
-    // B: Dynamic turn updates
     else if (data.action === "your_turn") {
         document.getElementById('waitingScreen').style.display = 'none';
         document.getElementById('actionScreen').style.display = 'block';
@@ -71,6 +69,10 @@ function joinGame() {
             alert("Still connecting to the cloud... please try again in 2 seconds!");
             return; 
         }
+        
+        // --- NEW: SAVE TO TAB MEMORY ---
+        mySessionName = nameInput;
+        
         try {
             localStorage.setItem("playerName", nameInput);
             localStorage.setItem("roomCode", codeInput);
@@ -98,14 +100,13 @@ function updateBetDisplay() {
 
 function placeBet() {
     const betAmount = document.getElementById('betSlider').value;
-    const myName = localStorage.getItem("playerName");
     
     ws.send(JSON.stringify({
         action: "button_press",
         payload: { 
             action: "place_bet", 
             amount: parseInt(betAmount),
-            name: myName
+            name: mySessionName // <-- Uses the tab's memory!
         }
     }));
     
@@ -117,12 +118,11 @@ function placeBet() {
 }
 
 function sendAction(choice) {
-    const myName = localStorage.getItem("playerName");
     ws.send(JSON.stringify({
         action: "button_press",
         payload: { 
             action: choice, 
-            name: myName 
+            name: mySessionName // <-- Uses the tab's memory!
         }
     }));
 }
