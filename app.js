@@ -130,3 +130,35 @@ function sendAction(choice) {
         }
     }));
 }
+
+// --- 8. HOST DASHBOARD CONTROLS ---
+function changePhase(phase) {
+    ws.send(JSON.stringify({
+        action: "host_command",
+        payload: { action: "change_phase", phase: phase }
+    }));
+}
+
+function setBalance() {
+    const target = document.getElementById('targetPlayer').value;
+    const amount = document.getElementById('targetAmount').value;
+    
+    if (!target || !amount) {
+        alert("Please enter a name and amount!");
+        return;
+    }
+    
+    ws.send(JSON.stringify({
+        action: "host_command",
+        payload: {
+            action: "set_balance",
+            target_player: target,
+            amount: parseInt(amount)
+        }
+    }));
+    
+    // Clear the inputs and confirm!
+    document.getElementById('targetPlayer').value = "";
+    document.getElementById('targetAmount').value = "";
+    alert("Sent $" + amount + " to " + target + "!");
+}
