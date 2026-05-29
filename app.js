@@ -20,11 +20,10 @@ ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
-    if (data.action === "profile_loaded") {
+if (data.action === "profile_loaded") {
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         document.getElementById('betSlider').max = data.currency;
         
-        // Welcome them using their specific tab's name
         document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
         
         document.getElementById('login').style.display = 'none';
@@ -32,8 +31,14 @@ ws.onmessage = (event) => {
         document.getElementById('actionScreen').style.display = 'none';
         document.getElementById('waitingScreen').style.display = 'block';
         
-        document.getElementById('waitingContent').innerHTML = 
-            "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
+        // NEW: Tell them if they missed the boat!
+        if (data.current_phase === "LOBBY") {
+            document.getElementById('waitingContent').innerHTML = 
+                "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
+        } else {
+            document.getElementById('waitingContent').innerHTML = 
+                "<h2 style='color:#f44336;'>Round in Progress!</h2><p style='font-size: 20px;'>You are spectating. You will automatically join the next round!</p>";
+        }
     }
     
     else if (data.action === "phase_changed") {
