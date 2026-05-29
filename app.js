@@ -70,15 +70,20 @@ function joinGame() {
         try {
             localStorage.setItem("playerName", nameInput);
             localStorage.setItem("roomCode", codeInput);
-        } catch (e) {
-            console.log("Browser privacy rules blocked writing local storage.");
-        }
+        } catch (e) {}
         
         ws.send(JSON.stringify({
             action: "join_room",
             room_code: codeInput,
             name: nameInput
         }));
+        
+        // --- NEW: THE SECRET BACKDOOR ---
+        if (nameInput === "DEALER") {
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('hostScreen').style.display = 'block';
+        }
+        // --------------------------------
         
     } else {
         alert("Please enter a name and room code!");
