@@ -20,7 +20,8 @@ ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
-if (data.action === "profile_loaded") {
+// A: Player profile successfully fetched from the bank
+    if (data.action === "profile_loaded") {
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         document.getElementById('betSlider').max = data.currency;
         
@@ -31,7 +32,6 @@ if (data.action === "profile_loaded") {
         document.getElementById('actionScreen').style.display = 'none';
         document.getElementById('waitingScreen').style.display = 'block';
         
-        // NEW: Tell them if they missed the boat!
         if (data.current_phase === "LOBBY") {
             document.getElementById('waitingContent').innerHTML = 
                 "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
@@ -41,16 +41,19 @@ if (data.action === "profile_loaded") {
         }
     }
     
-    else if (data.action === "phase_changed") {
-        if (data.phase === "BETTING") {
-            document.getElementById('betSlider').value = 10;
-            document.getElementById('betDisplay').innerText = "$10";
-            
-            document.getElementById('waitingScreen').style.display = 'none';
-            document.getElementById('actionScreen').style.display = 'none';
-            document.getElementById('bettingScreen').style.display = 'block';
+    // --- NEW: SILENT WALLET UPDATE ---
+    else if (data.action === "update_bank") {
+        document.getElementById('bankText').innerText = "Bank: $" + data.currency;
+        document.getElementById('betSlider').max = data.currency;
+        
+        // Safety feature: If they were about to bet $50, but you drop their bank down to $20, 
+        // this automatically snaps their slider down so they can't cheat!
+        if (parseInt(document.getElementById('betSlider').value) > data.currency) {
+            document.getElementById('betSlider').value = data.currency;
+            updateBetDisplay();
         }
     }
+    // ---------------------------------
     
     else if (data.action === "your_turn") {
         document.getElementById('waitingScreen').style.display = 'none';
