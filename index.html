@@ -96,5 +96,18 @@
     </div>
 
     <script src="app.js?v=15"></script>
+
+    <div id="disconnectScreen" style="display:none; margin-top: 100px; text-align: center;">
+        <h2 style="color: #f44336; font-size: 40px; margin-bottom: 10px;">Connection Lost!</h2>
+        <p style="font-size: 20px; margin-bottom: 30px;">The server went to sleep or you lost signal.</p>
+        <div style="width: 50px; height: 50px; border: 5px solid #444; border-top: 5px solid #2196F3; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+        <p style="font-size: 20px; color: #aaa; margin-top: 20px;">Reconnecting automatically...</p>
+        
+        <style>
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        </style>
+    </div>
+
+    <script src="app.js?v=15"></script>
 </body>
 </html>
