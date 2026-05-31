@@ -37,16 +37,28 @@ function connectToCloud() {
             document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
             
             document.getElementById('login').style.display = 'none';
-            document.getElementById('bettingScreen').style.display = 'none';
-            document.getElementById('actionScreen').style.display = 'none';
-            document.getElementById('waitingScreen').style.display = 'block';
             
-            if (data.current_phase === "LOBBY") {
+            // FIXED: Look at individual lock variables before assigning sliders
+            if (data.is_locked) {
+                document.getElementById('bettingScreen').style.display = 'none';
+                document.getElementById('actionScreen').style.display = 'none';
+                document.getElementById('waitingScreen').style.display = 'block';
+                document.getElementById('waitingContent').innerHTML = 
+                    "<h2 style='color:#FF9800;'>HAND LOCKED OVER!</h2><p style='font-size: 20px;'>Your previous cards and bet of <b>$" + data.locked_bet + "</b> are locked into this round because you were skipped!</p>";
+            } else if (data.current_phase === "LOBBY") {
+                document.getElementById('bettingScreen').style.display = 'none';
+                document.getElementById('actionScreen').style.display = 'none';
+                document.getElementById('waitingScreen').style.display = 'block';
                 document.getElementById('waitingContent').innerHTML = "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
             } else if (data.current_phase === "BETTING") {
                 document.getElementById('waitingScreen').style.display = 'none';
+                document.getElementById('actionScreen').style.display = 'none';
                 document.getElementById('bettingScreen').style.display = 'block';
             } else {
+                document.getElementById('waitingScreen').style.display = 'none';
+                document.getElementById('bettingScreen').style.display = 'none';
+                document.getElementById('actionScreen').style.display = 'none';
+                document.getElementById('waitingScreen').style.display = 'block';
                 document.getElementById('waitingContent').innerHTML = "<h2 style='color:#f44336;'>Round in Progress!</h2><p style='font-size: 20px;'>You are spectating. You will automatically join the next round!</p>";
             }
         }
@@ -70,7 +82,6 @@ function connectToCloud() {
             }
         }
 
-        // --- NEW: CATCH ANTI-CHEAT LOCK LABELS FROM GODOT ---
         else if (data.action === "hand_locked") {
             document.getElementById('bettingScreen').style.display = 'none';
             document.getElementById('actionScreen').style.display = 'none';
@@ -163,7 +174,6 @@ function setBalance() {
     alert("Sent $" + amount + " to " + target + "!");
 }
 
-// --- NEW: SEND MERCY ACTIONS PACKETS TO GODOT ---
 function grantMercy() {
     const target = document.getElementById('mercyPlayer').value;
     if (!target) { alert("Please enter a player name!"); return; }
