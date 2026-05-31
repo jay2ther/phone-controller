@@ -88,14 +88,14 @@
             <button onclick="setBalance()" style="width:85%; height:60px; font-size:20px; background:#4CAF50; color:white; border-radius:10px; border:none; font-weight:bold;">SEND CHIPS</button>
         </div>
 
-        <div style="background: #222; padding: 20px; border-radius: 10px; border: 1px solid #444;">
+    <div style="background: #222; padding: 20px; border-radius: 10px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#aaa;">2. Game Control</h3>
             <button onclick="changePhase('BETTING')" style="width:85%; height:70px; font-size:25px; background:#2196F3; color:white; border-radius:10px; border:none; margin-bottom:15px; font-weight:bold;">START BETTING</button><br>
+            
+            <button onclick="skipTurn()" style="width:85%; height:70px; font-size:25px; background:#FF9800; color:white; border-radius:10px; border:none; margin-bottom:15px; font-weight:bold;">SKIP CURRENT TURN</button><br>
+            
             <button onclick="changePhase('ACTION')" style="width:85%; height:70px; font-size:25px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">DEAL CARDS</button>
         </div>
-    </div>
-
-    <script src="app.js?v=15"></script>
 
     <div id="disconnectScreen" style="display:none; margin-top: 100px; text-align: center;">
         <h2 style="color: #f44336; font-size: 40px; margin-bottom: 10px;">Connection Lost!</h2>
