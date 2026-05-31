@@ -180,3 +180,10 @@ function setBalance() {
     document.getElementById('targetAmount').value = "";
     alert("Sent $" + amount + " to " + target + "!");
 }
+
+function skipTurn() {
+    ws.send(JSON.stringify({
+        action: "host_command",
+        payload: { action: "skip_turn" }
+    }));
+}
