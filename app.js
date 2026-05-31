@@ -3,18 +3,14 @@ let mySessionName = "";
 let myRoomCode = "";
 let pingInterval;
 
-// 1. WRAP CONNECTION IN A REUSABLE FUNCTION
 function connectToCloud() {
     ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
 
     ws.onopen = () => {
         console.log("Connected to cloud!");
-        
-        // Hide disconnect screen if we are recovering
         const dcScreen = document.getElementById('disconnectScreen');
         if (dcScreen) dcScreen.style.display = 'none';
 
-        // THE HEARTBEAT: Sends a blank ping every 30 seconds to keep Render awake!
         clearInterval(pingInterval);
         pingInterval = setInterval(() => {
             if (ws.readyState === WebSocket.OPEN) {
@@ -22,11 +18,8 @@ function connectToCloud() {
             }
         }, 30000);
 
-        // AUTO-REJOIN: If we already had a name, automatically log back in!
         if (mySessionName && myRoomCode) {
             ws.send(JSON.stringify({ action: "join_room", room_code: myRoomCode, name: mySessionName }));
-            
-            // If the Host reconnected, jump straight back to the dashboard
             if (mySessionName === "DEALER") {
                 document.getElementById('login').style.display = 'none';
                 document.getElementById('hostScreen').style.display = 'block';
@@ -48,7 +41,6 @@ function connectToCloud() {
             document.getElementById('actionScreen').style.display = 'none';
             document.getElementById('waitingScreen').style.display = 'block';
             
-            // SEAMLESS RESUME: If they reconnected during betting, show the slider immediately!
             if (data.current_phase === "LOBBY") {
                 document.getElementById('waitingContent').innerHTML = "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
             } else if (data.current_phase === "BETTING") {
@@ -77,6 +69,15 @@ function connectToCloud() {
                 document.getElementById('bettingScreen').style.display = 'block';
             }
         }
+
+        // --- NEW: CATCH ANTI-CHEAT LOCK LABELS FROM GODOT ---
+        else if (data.action === "hand_locked") {
+            document.getElementById('bettingScreen').style.display = 'none';
+            document.getElementById('actionScreen').style.display = 'none';
+            document.getElementById('waitingScreen').style.display = 'block';
+            document.getElementById('waitingContent').innerHTML = 
+                "<h2 style='color:#FF9800;'>HAND LOCKED OVER!</h2><p style='font-size: 20px;'>Your previous cards and bet of <b>$" + data.bet + "</b> are locked into this round because you were skipped!</p>";
+        }
         
         else if (data.action === "your_turn") {
             document.getElementById('waitingScreen').style.display = 'none';
@@ -89,32 +90,21 @@ function connectToCloud() {
         }
     };
 
-    // 2. DETECT DROPS AND AUTO-RECOVER
     ws.onclose = () => {
-        console.log("Connection lost. Reconnecting in 3 seconds...");
+        console.log("Connection lost. Reconnecting...");
         clearInterval(pingInterval);
-        
-        // Hide all game screens and show the Disconnect Warning
         const screens = ['login', 'bettingScreen', 'waitingScreen', 'actionScreen', 'hostScreen'];
-        screens.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.style.display = 'none';
-        });
-        
+        screens.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
         const dcScreen = document.getElementById('disconnectScreen');
         if (dcScreen) dcScreen.style.display = 'block';
-
-        // Try to reconnect every 3 seconds until it works
         setTimeout(connectToCloud, 3000);
     };
 
-    ws.onerror = () => { ws.close(); }; // Force close to trigger the auto-reconnect loop
+    ws.onerror = () => { ws.close(); };
 }
 
-// Start the connection when the script loads
 connectToCloud();
 
-// --- BUTTON FUNCTIONS ---
 window.onload = () => {
     try {
         const savedName = localStorage.getItem("playerName");
@@ -131,28 +121,19 @@ function joinGame() {
     const codeInput = document.getElementById('roomCode').value.toUpperCase();
     
     if (nameInput && codeInput) {
-        if (ws.readyState !== WebSocket.OPEN) {
-            alert("Still connecting to the cloud... please try again in 2 seconds!");
-            return; 
-        }
-        
+        if (ws.readyState !== WebSocket.OPEN) { alert("Connecting... try again in 2 seconds!"); return; }
         mySessionName = nameInput;
-        myRoomCode = codeInput; // Save this so we can auto-rejoin
-        
+        myRoomCode = codeInput;
         try {
             localStorage.setItem("playerName", nameInput);
             localStorage.setItem("roomCode", codeInput);
         } catch (e) {}
-        
         ws.send(JSON.stringify({ action: "join_room", room_code: codeInput, name: nameInput }));
-        
         if (nameInput === "DEALER") {
             document.getElementById('login').style.display = 'none';
             document.getElementById('hostScreen').style.display = 'block';
         }
-    } else {
-        alert("Please enter a name and room code!");
-    }
+    } else { alert("Please enter a name and room code!"); }
 }
 
 function updateBetDisplay() {
@@ -170,6 +151,7 @@ function placeBet() {
 
 function sendAction(choice) { ws.send(JSON.stringify({ action: "button_press", payload: { action: choice, name: mySessionName } })); }
 function changePhase(phase) { ws.send(JSON.stringify({ action: "host_command", payload: { action: "change_phase", phase: phase } })); }
+function skipTurn() { ws.send(JSON.stringify({ action: "host_command", payload: { action: "skip_turn" } })); }
 
 function setBalance() {
     const target = document.getElementById('targetPlayer').value;
@@ -181,9 +163,11 @@ function setBalance() {
     alert("Sent $" + amount + " to " + target + "!");
 }
 
-function skipTurn() {
-    ws.send(JSON.stringify({
-        action: "host_command",
-        payload: { action: "skip_turn" }
-    }));
+// --- NEW: SEND MERCY ACTIONS PACKETS TO GODOT ---
+function grantMercy() {
+    const target = document.getElementById('mercyPlayer').value;
+    if (!target) { alert("Please enter a player name!"); return; }
+    ws.send(JSON.stringify({ action: "host_command", payload: { action: "grant_mercy", target_player: target } }));
+    document.getElementById('mercyPlayer').value = "";
+    alert("Mercy extended to " + target + "! Hand wiped clean.");
 }

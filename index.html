@@ -8,20 +8,8 @@
     <style>
         body { font-family: sans-serif; text-align: center; margin: 0; padding: 20px; transition: 0.3s; }
         input { color: CanvasText; background-color: Canvas; }
-        
-        /* Tactile Button Animations (The "Squish" Effect) */
-        button {
-            transition: transform 0.05s ease, filter 0.05s ease;
-            -webkit-tap-highlight-color: transparent;
-            cursor: pointer;
-        }
-        
-        button:active {
-            transform: scale(0.92); /* Shrinks slightly on tap */
-            filter: brightness(0.8); /* Dims color slightly on tap */
-        }
-        
-        /* Dark Mode Color Mapping */
+        button { transition: transform 0.05s ease, filter 0.05s ease; -webkit-tap-highlight-color: transparent; cursor: pointer; }
+        button:active { transform: scale(0.92); filter: brightness(0.8); }
         @media (prefers-color-scheme: dark) {
             body { background-color: #121212; color: #ffffff; }
             h2, p { color: #cccccc; }
@@ -34,34 +22,18 @@
     <div id="login" style="margin-top: 50px;">
         <h1 style="font-size: 40px; margin-bottom: 10px;">PARTY GAME</h1>
         <p style="margin-bottom: 30px;">Look at the TV for the Room Code!</p>
-        
-        <input type="text" id="playerName" placeholder="Your Name" 
-               style="font-size:24px; padding:15px; width:80%; margin-bottom:15px; text-align: center; border-radius: 10px; border: 2px solid #ccc;"><br>
-               
-        <input type="text" id="roomCode" placeholder="ROOM CODE" maxlength="5" 
-               style="text-transform:uppercase; font-size:24px; padding:15px; width:80%; margin-bottom:30px; text-align: center; border-radius: 10px; border: 2px solid #ccc;"><br>
-               
-        <button onclick="joinGame()" 
-                style="font-size:24px; padding:20px; width:85%; background:#4CAF50; color:white; border-radius:15px; border: none; font-weight: bold;">
-            JOIN GAME
-        </button>
+        <input type="text" id="playerName" placeholder="Your Name" style="font-size:24px; padding:15px; width:80%; margin-bottom:15px; text-align: center; border-radius: 10px; border: 2px solid #ccc;"><br>
+        <input type="text" id="roomCode" placeholder="ROOM CODE" maxlength="5" style="text-transform:uppercase; font-size:24px; padding:15px; width:80%; margin-bottom:30px; text-align: center; border-radius: 10px; border: 2px solid #ccc;"><br>
+        <button onclick="joinGame()" style="font-size:24px; padding:20px; width:85%; background:#4CAF50; color:white; border-radius:15px; border: none; font-weight: bold;">JOIN GAME</button>
     </div>
 
     <div id="bettingScreen" style="display:none; margin-top: 20px;">
         <h2 id="statusText" style="margin-bottom: 5px;">You're in!</h2>
         <h3 id="bankText" style="color: #4CAF50; margin-top: 0px; margin-bottom: 20px;">Bank: $0</h3>
-        
         <h2>Place Your Bet</h2>
         <h1 id="betDisplay" style="font-size: 60px; margin: 10px; color: #f44336;">$10</h1>
-        
-        <input type="range" id="betSlider" min="10" max="100" step="10" value="10" 
-               oninput="updateBetDisplay()" 
-               style="width: 80%; height: 40px; margin-bottom: 40px;">
-        <br>
-        <button onclick="placeBet()" 
-                style="width:80%; height:80px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">
-            LOCK IN BET
-        </button>
+        <input type="range" id="betSlider" min="10" max="100" step="10" value="10" oninput="updateBetDisplay()" style="width: 80%; height: 40px; margin-bottom: 40px;"><br>
+        <button onclick="placeBet()" style="width:80%; height:80px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">LOCK IN BET</button>
     </div>
 
     <div id="waitingScreen" style="display:none; margin-top: 100px;">
@@ -72,42 +44,43 @@
     </div>
 
     <div id="actionScreen" style="display:none; margin-top: 50px;">
-        <h2 style="color: #2196F3; font-size: 35px;">It's Your Turn!</h2>
-        <br>
+        <h2 style="color: #2196F3; font-size: 35px;">It's Your Turn!</h2><br>
         <button onclick="sendAction('hit')" style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:5%; border:none; font-weight:bold;">HIT</button>
         <button onclick="sendAction('stand')" style="width:40%; height:120px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">STAND</button>
     </div>
 
     <div id="hostScreen" style="display:none; margin-top: 20px; text-align: center;">
-        <h2 style="color: #FFC107; font-size: 35px; margin-bottom: 30px;">HOST DASHBOARD</h2>
+        <h2 style="color: #FFC107; font-size: 35px; margin-bottom: 25px;">HOST DASHBOARD</h2>
 
-        <div style="background: #222; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444;">
+        <div style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#aaa;">1. Bank Management</h3>
-            <input type="text" id="targetPlayer" placeholder="Player Name" style="font-size:20px; padding:10px; width:75%; margin-bottom:10px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
-            <input type="number" id="targetAmount" placeholder="Amount ($)" style="font-size:20px; padding:10px; width:75%; margin-bottom:15px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
-            <button onclick="setBalance()" style="width:85%; height:60px; font-size:20px; background:#4CAF50; color:white; border-radius:10px; border:none; font-weight:bold;">SEND CHIPS</button>
+            <input type="text" id="targetPlayer" placeholder="Player Name" style="font-size:18px; padding:8px; width:75%; margin-bottom:8px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
+            <input type="number" id="targetAmount" placeholder="Amount ($)" style="font-size:18px; padding:8px; width:75%; margin-bottom:10px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
+            <button onclick="setBalance()" style="width:85%; height:50px; font-size:18px; background:#4CAF50; color:white; border-radius:10px; border:none; font-weight:bold;">SEND CHIPS</button>
         </div>
 
-    <div style="background: #222; padding: 20px; border-radius: 10px; border: 1px solid #444;">
+        <div style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#aaa;">2. Game Control</h3>
-            <button onclick="changePhase('BETTING')" style="width:85%; height:70px; font-size:25px; background:#2196F3; color:white; border-radius:10px; border:none; margin-bottom:15px; font-weight:bold;">START BETTING</button><br>
-            
-            <button onclick="skipTurn()" style="width:85%; height:70px; font-size:25px; background:#FF9800; color:white; border-radius:10px; border:none; margin-bottom:15px; font-weight:bold;">SKIP CURRENT TURN</button><br>
-            
-            <button onclick="changePhase('ACTION')" style="width:85%; height:70px; font-size:25px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">DEAL CARDS</button>
+            <button onclick="changePhase('BETTING')" style="width:85%; height:60px; font-size:22px; background:#2196F3; color:white; border-radius:10px; border:none; margin-bottom:10px; font-weight:bold;">START BETTING</button><br>
+            <button onclick="skipTurn()" style="width:85%; height:60px; font-size:22px; background:#FF9800; color:white; border-radius:10px; border:none; margin-bottom:10px; font-weight:bold;">SKIP CURRENT TURN</button><br>
+            <button onclick="changePhase('ACTION')" style="width:85%; height:60px; font-size:22px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">DEAL CARDS</button>
         </div>
+
+        <div style="background: #222; padding: 15px; border-radius: 10px; border: 1px solid #444;">
+            <h3 style="margin-top:0; color:#FF9800;">3. Host Mercy (Anti-Cheat Override)</h3>
+            <input type="text" id="mercyPlayer" placeholder="Player Name" style="font-size:18px; padding:8px; width:75%; margin-bottom:10px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
+            <button onclick="grantMercy()" style="width:85%; height:50px; font-size:18px; background:#E91E63; color:white; border-radius:10px; border:none; font-weight:bold;">GRANT MERCY</button>
+        </div>
+    </div>
 
     <div id="disconnectScreen" style="display:none; margin-top: 100px; text-align: center;">
         <h2 style="color: #f44336; font-size: 40px; margin-bottom: 10px;">Connection Lost!</h2>
         <p style="font-size: 20px; margin-bottom: 30px;">The server went to sleep or you lost signal.</p>
         <div style="width: 50px; height: 50px; border: 5px solid #444; border-top: 5px solid #2196F3; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
         <p style="font-size: 20px; color: #aaa; margin-top: 20px;">Reconnecting automatically...</p>
-        
-        <style>
-            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        </style>
+        <style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
     </div>
 
-    <script src="app.js?v=17"></script>
+    <script src="app.js?v=18"></script>
 </body>
 </html>
