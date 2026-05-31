@@ -1,9 +1,5 @@
 const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
-
-// --- NEW: THE TAB'S PERSONAL MEMORY ---
-// This variable stays trapped inside this specific tab!
 let mySessionName = ""; 
-// --------------------------------------
 
 window.onload = () => {
     try {
@@ -20,11 +16,10 @@ ws.onmessage = (event) => {
     let data;
     try { data = JSON.parse(event.data); } catch (e) { return; }
     
-// A: Player profile successfully fetched from the bank
+    // A. Profile Load & Spectator Check
     if (data.action === "profile_loaded") {
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         document.getElementById('betSlider').max = data.currency;
-        
         document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
         
         document.getElementById('login').style.display = 'none';
@@ -41,25 +36,34 @@ ws.onmessage = (event) => {
         }
     }
     
-    // --- NEW: SILENT WALLET UPDATE ---
+    // B. Silent Wallet Update
     else if (data.action === "update_bank") {
         document.getElementById('bankText').innerText = "Bank: $" + data.currency;
         document.getElementById('betSlider').max = data.currency;
         
-        // Safety feature: If they were about to bet $50, but you drop their bank down to $20, 
-        // this automatically snaps their slider down so they can't cheat!
         if (parseInt(document.getElementById('betSlider').value) > data.currency) {
             document.getElementById('betSlider').value = data.currency;
             updateBetDisplay();
         }
     }
-    // ---------------------------------
     
+    // C. The Phase Transition (This is what got deleted!)
+    else if (data.action === "phase_changed") {
+        if (data.phase === "BETTING") {
+            document.getElementById('betSlider').value = 10;
+            document.getElementById('betDisplay').innerText = "$10";
+            
+            document.getElementById('waitingScreen').style.display = 'none';
+            document.getElementById('actionScreen').style.display = 'none';
+            document.getElementById('bettingScreen').style.display = 'block';
+        }
+    }
+    
+    // D. Turn Management
     else if (data.action === "your_turn") {
         document.getElementById('waitingScreen').style.display = 'none';
         document.getElementById('actionScreen').style.display = 'block';
     }
-    
     else if (data.action === "wait_turn") {
         document.getElementById('actionScreen').style.display = 'none';
         document.getElementById('waitingScreen').style.display = 'block';
@@ -78,7 +82,6 @@ function joinGame() {
             return; 
         }
         
-        // --- NEW: SAVE TO TAB MEMORY ---
         mySessionName = nameInput;
         
         try {
@@ -108,14 +111,9 @@ function updateBetDisplay() {
 
 function placeBet() {
     const betAmount = document.getElementById('betSlider').value;
-    
     ws.send(JSON.stringify({
         action: "button_press",
-        payload: { 
-            action: "place_bet", 
-            amount: parseInt(betAmount),
-            name: mySessionName // <-- Uses the tab's memory!
-        }
+        payload: { action: "place_bet", amount: parseInt(betAmount), name: mySessionName }
     }));
     
     document.getElementById('waitingContent').innerHTML = 
@@ -128,10 +126,7 @@ function placeBet() {
 function sendAction(choice) {
     ws.send(JSON.stringify({
         action: "button_press",
-        payload: { 
-            action: choice, 
-            name: mySessionName // <-- Uses the tab's memory!
-        }
+        payload: { action: choice, name: mySessionName }
     }));
 }
 
@@ -152,11 +147,7 @@ function setBalance() {
     }
     ws.send(JSON.stringify({
         action: "host_command",
-        payload: {
-            action: "set_balance",
-            target_player: target,
-            amount: parseInt(amount)
-        }
+        payload: { action: "set_balance", target_player: target, amount: parseInt(amount) }
     }));
     document.getElementById('targetPlayer').value = "";
     document.getElementById('targetAmount').value = "";
