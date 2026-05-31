@@ -1,6 +1,120 @@
-const ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
-let mySessionName = ""; 
+let ws;
+let mySessionName = "";
+let myRoomCode = "";
+let pingInterval;
 
+// 1. WRAP CONNECTION IN A REUSABLE FUNCTION
+function connectToCloud() {
+    ws = new WebSocket('wss://my-party-server-9xm3.onrender.com');
+
+    ws.onopen = () => {
+        console.log("Connected to cloud!");
+        
+        // Hide disconnect screen if we are recovering
+        const dcScreen = document.getElementById('disconnectScreen');
+        if (dcScreen) dcScreen.style.display = 'none';
+
+        // THE HEARTBEAT: Sends a blank ping every 30 seconds to keep Render awake!
+        clearInterval(pingInterval);
+        pingInterval = setInterval(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: "ping" }));
+            }
+        }, 30000);
+
+        // AUTO-REJOIN: If we already had a name, automatically log back in!
+        if (mySessionName && myRoomCode) {
+            ws.send(JSON.stringify({ action: "join_room", room_code: myRoomCode, name: mySessionName }));
+            
+            // If the Host reconnected, jump straight back to the dashboard
+            if (mySessionName === "DEALER") {
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('hostScreen').style.display = 'block';
+            }
+        }
+    };
+
+    ws.onmessage = (event) => {
+        let data;
+        try { data = JSON.parse(event.data); } catch (e) { return; }
+        
+        if (data.action === "profile_loaded") {
+            document.getElementById('bankText').innerText = "Bank: $" + data.currency;
+            document.getElementById('betSlider').max = data.currency;
+            document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
+            
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('bettingScreen').style.display = 'none';
+            document.getElementById('actionScreen').style.display = 'none';
+            document.getElementById('waitingScreen').style.display = 'block';
+            
+            // SEAMLESS RESUME: If they reconnected during betting, show the slider immediately!
+            if (data.current_phase === "LOBBY") {
+                document.getElementById('waitingContent').innerHTML = "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
+            } else if (data.current_phase === "BETTING") {
+                document.getElementById('waitingScreen').style.display = 'none';
+                document.getElementById('bettingScreen').style.display = 'block';
+            } else {
+                document.getElementById('waitingContent').innerHTML = "<h2 style='color:#f44336;'>Round in Progress!</h2><p style='font-size: 20px;'>You are spectating. You will automatically join the next round!</p>";
+            }
+        }
+        
+        else if (data.action === "update_bank") {
+            document.getElementById('bankText').innerText = "Bank: $" + data.currency;
+            document.getElementById('betSlider').max = data.currency;
+            if (parseInt(document.getElementById('betSlider').value) > data.currency) {
+                document.getElementById('betSlider').value = data.currency;
+                updateBetDisplay();
+            }
+        }
+        
+        else if (data.action === "phase_changed") {
+            if (data.phase === "BETTING") {
+                document.getElementById('betSlider').value = 10;
+                document.getElementById('betDisplay').innerText = "$10";
+                document.getElementById('waitingScreen').style.display = 'none';
+                document.getElementById('actionScreen').style.display = 'none';
+                document.getElementById('bettingScreen').style.display = 'block';
+            }
+        }
+        
+        else if (data.action === "your_turn") {
+            document.getElementById('waitingScreen').style.display = 'none';
+            document.getElementById('actionScreen').style.display = 'block';
+        }
+        else if (data.action === "wait_turn") {
+            document.getElementById('actionScreen').style.display = 'none';
+            document.getElementById('waitingScreen').style.display = 'block';
+            document.getElementById('waitingContent').innerHTML = "<h2 style='color:#666;'>Waiting...</h2><p style='font-size:20px;'>" + data.active_player + " is making a move.</p>";
+        }
+    };
+
+    // 2. DETECT DROPS AND AUTO-RECOVER
+    ws.onclose = () => {
+        console.log("Connection lost. Reconnecting in 3 seconds...");
+        clearInterval(pingInterval);
+        
+        // Hide all game screens and show the Disconnect Warning
+        const screens = ['login', 'bettingScreen', 'waitingScreen', 'actionScreen', 'hostScreen'];
+        screens.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+        
+        const dcScreen = document.getElementById('disconnectScreen');
+        if (dcScreen) dcScreen.style.display = 'block';
+
+        // Try to reconnect every 3 seconds until it works
+        setTimeout(connectToCloud, 3000);
+    };
+
+    ws.onerror = () => { ws.close(); }; // Force close to trigger the auto-reconnect loop
+}
+
+// Start the connection when the script loads
+connectToCloud();
+
+// --- BUTTON FUNCTIONS ---
 window.onload = () => {
     try {
         const savedName = localStorage.getItem("playerName");
@@ -10,66 +124,6 @@ window.onload = () => {
             document.getElementById('roomCode').value = savedCode;
         }
     } catch (e) {}
-};
-
-ws.onmessage = (event) => {
-    let data;
-    try { data = JSON.parse(event.data); } catch (e) { return; }
-    
-    // A. Profile Load & Spectator Check
-    if (data.action === "profile_loaded") {
-        document.getElementById('bankText').innerText = "Bank: $" + data.currency;
-        document.getElementById('betSlider').max = data.currency;
-        document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
-        
-        document.getElementById('login').style.display = 'none';
-        document.getElementById('bettingScreen').style.display = 'none';
-        document.getElementById('actionScreen').style.display = 'none';
-        document.getElementById('waitingScreen').style.display = 'block';
-        
-        if (data.current_phase === "LOBBY") {
-            document.getElementById('waitingContent').innerHTML = 
-                "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
-        } else {
-            document.getElementById('waitingContent').innerHTML = 
-                "<h2 style='color:#f44336;'>Round in Progress!</h2><p style='font-size: 20px;'>You are spectating. You will automatically join the next round!</p>";
-        }
-    }
-    
-    // B. Silent Wallet Update
-    else if (data.action === "update_bank") {
-        document.getElementById('bankText').innerText = "Bank: $" + data.currency;
-        document.getElementById('betSlider').max = data.currency;
-        
-        if (parseInt(document.getElementById('betSlider').value) > data.currency) {
-            document.getElementById('betSlider').value = data.currency;
-            updateBetDisplay();
-        }
-    }
-    
-    // C. The Phase Transition (This is what got deleted!)
-    else if (data.action === "phase_changed") {
-        if (data.phase === "BETTING") {
-            document.getElementById('betSlider').value = 10;
-            document.getElementById('betDisplay').innerText = "$10";
-            
-            document.getElementById('waitingScreen').style.display = 'none';
-            document.getElementById('actionScreen').style.display = 'none';
-            document.getElementById('bettingScreen').style.display = 'block';
-        }
-    }
-    
-    // D. Turn Management
-    else if (data.action === "your_turn") {
-        document.getElementById('waitingScreen').style.display = 'none';
-        document.getElementById('actionScreen').style.display = 'block';
-    }
-    else if (data.action === "wait_turn") {
-        document.getElementById('actionScreen').style.display = 'none';
-        document.getElementById('waitingScreen').style.display = 'block';
-        document.getElementById('waitingContent').innerHTML = 
-            "<h2 style='color:#666;'>Waiting...</h2><p style='font-size:20px;'>" + data.active_player + " is making a move.</p>";
-    }
 };
 
 function joinGame() {
@@ -83,17 +137,14 @@ function joinGame() {
         }
         
         mySessionName = nameInput;
+        myRoomCode = codeInput; // Save this so we can auto-rejoin
         
         try {
             localStorage.setItem("playerName", nameInput);
             localStorage.setItem("roomCode", codeInput);
         } catch (e) {}
         
-        ws.send(JSON.stringify({
-            action: "join_room",
-            room_code: codeInput,
-            name: nameInput
-        }));
+        ws.send(JSON.stringify({ action: "join_room", room_code: codeInput, name: nameInput }));
         
         if (nameInput === "DEALER") {
             document.getElementById('login').style.display = 'none';
@@ -111,44 +162,20 @@ function updateBetDisplay() {
 
 function placeBet() {
     const betAmount = document.getElementById('betSlider').value;
-    ws.send(JSON.stringify({
-        action: "button_press",
-        payload: { action: "place_bet", amount: parseInt(betAmount), name: mySessionName }
-    }));
-    
-    document.getElementById('waitingContent').innerHTML = 
-        "<h2>Bet Locked!</h2><p style='font-size: 20px;'>Look at the TV, waiting for Dealer to deal...</p>";
-        
+    ws.send(JSON.stringify({ action: "button_press", payload: { action: "place_bet", amount: parseInt(betAmount), name: mySessionName } }));
+    document.getElementById('waitingContent').innerHTML = "<h2>Bet Locked!</h2><p style='font-size: 20px;'>Look at the TV, waiting for Dealer to deal...</p>";
     document.getElementById('bettingScreen').style.display = 'none';
     document.getElementById('waitingScreen').style.display = 'block';
 }
 
-function sendAction(choice) {
-    ws.send(JSON.stringify({
-        action: "button_press",
-        payload: { action: choice, name: mySessionName }
-    }));
-}
-
-function changePhase(phase) {
-    ws.send(JSON.stringify({
-        action: "host_command",
-        payload: { action: "change_phase", phase: phase }
-    }));
-}
+function sendAction(choice) { ws.send(JSON.stringify({ action: "button_press", payload: { action: choice, name: mySessionName } })); }
+function changePhase(phase) { ws.send(JSON.stringify({ action: "host_command", payload: { action: "change_phase", phase: phase } })); }
 
 function setBalance() {
     const target = document.getElementById('targetPlayer').value;
     const amount = document.getElementById('targetAmount').value;
-    
-    if (!target || !amount) {
-        alert("Please enter a name and amount!");
-        return;
-    }
-    ws.send(JSON.stringify({
-        action: "host_command",
-        payload: { action: "set_balance", target_player: target, amount: parseInt(amount) }
-    }));
+    if (!target || !amount) { alert("Please enter a name and amount!"); return; }
+    ws.send(JSON.stringify({ action: "host_command", payload: { action: "set_balance", target_player: target, amount: parseInt(amount) } }));
     document.getElementById('targetPlayer').value = "";
     document.getElementById('targetAmount').value = "";
     alert("Sent $" + amount + " to " + target + "!");
