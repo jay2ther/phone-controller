@@ -37,8 +37,10 @@ function connectToCloud() {
             document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
             document.getElementById('login').style.display = 'none';
             
-            // Wipe card graphics clean between game round transitions
-            renderMobileHand(null);
+            // Clear trays on state load
+            renderMobileCards(null, 'waitingCards');
+            renderMobileCards(null, 'waitingDealerCards');
+            toggleLabels(false);
 
             if (data.is_locked) {
                 document.getElementById('bettingScreen').style.display = 'none';
@@ -75,7 +77,9 @@ function connectToCloud() {
         
         else if (data.action === "phase_changed") {
             if (data.phase === "BETTING") {
-                renderMobileHand(null); // Flush visual tray
+                renderMobileCards(null, 'waitingCards');
+                renderMobileCards(null, 'waitingDealerCards');
+                toggleLabels(false);
                 document.getElementById('betSlider').value = 10;
                 document.getElementById('betDisplay').innerText = "$10";
                 document.getElementById('waitingScreen').style.display = 'none';
@@ -94,14 +98,19 @@ function connectToCloud() {
         
         else if (data.action === "your_turn") {
             document.getElementById('waitingScreen').style.display = 'none';
-            document.getElementById('actionScreen').style.display = 'block';
-            if (data.cards) renderMobileHand(data.cards);
+            document.getElementById('actionScreen').style.block = 'block';
+            
+            if (data.cards) renderMobileCards(data.cards, 'actionCards');
+            if (data.dealer_cards) renderMobileCards(data.dealer_cards, 'actionDealerCards');
         }
         else if (data.action === "wait_turn") {
             document.getElementById('actionScreen').style.display = 'none';
             document.getElementById('waitingScreen').style.display = 'block';
             document.getElementById('waitingContent').innerHTML = "<h2 style='color:#666;'>Waiting...</h2><p style='font-size:20px;'>" + data.active_player + " is making a move.</p>";
-            if (data.cards) renderMobileHand(data.cards);
+            
+            toggleLabels(true);
+            if (data.cards) renderMobileCards(data.cards, 'waitingCards');
+            if (data.dealer_cards) renderMobileCards(data.dealer_cards, 'waitingDealerCards');
         }
     };
 
@@ -120,30 +129,54 @@ function connectToCloud() {
 
 connectToCloud();
 
-// --- NEW PROCEDURAL MOBILE CARD PRESENTATION BUILDER ---
-function renderMobileHand(cards) {
-    const trays = [document.getElementById('waitingCards'), document.getElementById('actionCards')];
+function toggleLabels(show) {
+    const displayMode = show ? 'block' : 'none';
+    document.getElementById('waitingDealerLabel').style.display = displayMode;
+    document.getElementById('waitingPlayerLabel').style.display = displayMode;
+}
+
+// UNIVERSAL MOBILE CARD PAINTER
+function renderMobileCards(cards, trayId) {
+    const tray = document.getElementById(trayId);
+    if (!tray) return;
+    tray.innerHTML = ""; 
+    if (!cards || cards.length === 0) return;
     
-    trays.forEach(tray => {
-        if (!tray) return;
-        tray.innerHTML = ""; // Clear existing blocks
-        if (!cards || cards.length === 0) return;
+    cards.forEach(cardStr => {
+        const cardEl = document.createElement('div');
         
-        cards.forEach(cardStr => {
+        if (cardStr === "HIDDEN") {
+            // RENDER CARD BACK FOR OBSCURED CARDS
+            cardEl.style.cssText = `
+                display: inline-block; 
+                width: 58px; 
+                height: 82px; 
+                background: #d32f2f; 
+                background-image: radial-gradient(#b71c1c 20%, transparent 20%), radial-gradient(#b71c1c 20%, transparent 20%);
+                background-size: 8px 8px;
+                background-position: 0 0, 4px 4px;
+                border-radius: 6px; 
+                margin: 5px; 
+                box-shadow: 0 3px 6px rgba(0,0,0,0.3); 
+                border: 2px solid #ffffff; 
+                box-sizing: border-box;
+                animation: popIn 0.2s ease-out;
+            `;
+        } else {
+            // RENDER STANDARD CARD FACE
             const parts = cardStr.split(" of ");
             if (parts.length < 2) return;
             
             const val = parts[0];
             const suit = parts[1];
             let symbol = "";
-            let color = "#111111"; // Rich dark charcoal for Spades/Clubs
+            let color = "#111111"; 
             
             if (suit === "Hearts") { symbol = "&hearts;"; color = "#d32f2f"; }
             else if (suit === "Diamonds") { symbol = "&diams;"; color = "#d32f2f"; }
             else if (suit === "Spades") { symbol = "&spades;"; }
             else if (suit === "Clubs") { symbol = "&clubs;"; }
             
-            const cardEl = document.createElement('div');
             cardEl.style.cssText = `
                 display: inline-block; 
                 width: 58px; 
@@ -167,12 +200,11 @@ function renderMobileHand(cards) {
                 <div style="font-size: 15px; line-height: 1; margin-bottom: 2px;">${val}</div>
                 <div style="font-size: 26px; text-align: center; line-height: 1; margin-top: 2px;">${symbol}</div>
             `;
-            tray.appendChild(cardEl);
-        });
+        }
+        tray.appendChild(cardEl);
     });
 }
 
-// Add a tiny animation rule inline for smooth card appearances
 const style = document.createElement('style');
 style.innerHTML = `@keyframes popIn { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`;
 document.head.appendChild(style);
