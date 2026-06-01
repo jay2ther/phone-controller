@@ -16,6 +16,7 @@
             input { border: 2px solid #555 !important; }
         }
         .version-footer { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #666; font-family: monospace; }
+        .mobile-card-tray { margin: 20px auto; min-height: 90px; text-align: center; display: flex; justify-content: center; flex-wrap: wrap; }
     </style>
 </head>
 <body>
@@ -37,36 +38,37 @@
         <button onclick="placeBet()" style="width:80%; height:80px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">LOCK IN BET</button>
     </div>
 
-    <div id="waitingScreen" style="display:none; margin-top: 100px;">
+    <div id="waitingScreen" style="display:none; margin-top: 60px;">
         <div id="waitingContent">
             <h2>Bet Locked!</h2>
             <p style="font-size: 20px;">Look at the TV, waiting for others...</p>
         </div>
+        <div class="mobile-card-tray" id="waitingCards"></div>
     </div>
 
-    <div id="actionScreen" style="display:none; margin-top: 50px;">
-        <h2 style="color: #2196F3; font-size: 35px;">It's Your Turn!</h2><br>
-        <button onclick="sendAction('hit')" style="width:40%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:5%; border:none; font-weight:bold;">HIT</button>
-        <button onclick="sendAction('stand')" style="width:40%; height:120px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">STAND</button>
+    <div id="actionScreen" style="display:none; margin-top: 40px;">
+        <h2 style="color: #2196F3; font-size: 35px; margin-bottom: 5px;">It's Your Turn!</h2>
+        
+        <div class="mobile-card-tray" id="actionCards"></div>
+        
+        <button onclick="sendAction('hit')" style="width:41%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:4%; border:none; font-weight:bold;">HIT</button>
+        <button onclick="sendAction('stand')" style="width:41%; height:120px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">STAND</button>
     </div>
 
     <div id="hostScreen" style="display:none; margin-top: 20px; text-align: center;">
         <h2 style="color: #FFC107; font-size: 35px; margin-bottom: 25px;">HOST DASHBOARD</h2>
-
         <div style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#aaa;">1. Bank Management</h3>
             <input type="text" id="targetPlayer" placeholder="Player Name" style="font-size:18px; padding:8px; width:75%; margin-bottom:8px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
             <input type="number" id="targetAmount" placeholder="Amount ($)" style="font-size:18px; padding:8px; width:75%; margin-bottom:10px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
             <button onclick="setBalance()" style="width:85%; height:50px; font-size:18px; background:#4CAF50; color:white; border-radius:10px; border:none; font-weight:bold;">SEND CHIPS</button>
         </div>
-
         <div style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#aaa;">2. Game Control</h3>
             <button onclick="changePhase('BETTING')" style="width:85%; height:60px; font-size:22px; background:#2196F3; color:white; border-radius:10px; border:none; margin-bottom:10px; font-weight:bold;">START BETTING</button><br>
             <button onclick="skipTurn()" style="width:85%; height:60px; font-size:22px; background:#FF9800; color:white; border-radius:10px; border:none; margin-bottom:10px; font-weight:bold;">SKIP CURRENT TURN</button><br>
             <button onclick="changePhase('ACTION')" style="width:85%; height:60px; font-size:22px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">DEAL CARDS</button>
         </div>
-
         <div style="background: #222; padding: 15px; border-radius: 10px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#FF9800;">3. Host Mercy (Anti-Cheat Override)</h3>
             <input type="text" id="mercyPlayer" placeholder="Player Name" style="font-size:18px; padding:8px; width:75%; margin-bottom:10px; text-align: center; border-radius: 5px; border: 1px solid #555;"><br>
@@ -76,13 +78,12 @@
 
     <div id="disconnectScreen" style="display:none; margin-top: 100px; text-align: center;">
         <h2 style="color: #f44336; font-size: 40px; margin-bottom: 10px;">Connection Lost!</h2>
-        <p style="font-size: 20px; margin-bottom: 30px;">The server went to sleep or you lost signal.</p>
         <div style="width: 50px; height: 50px; border: 5px solid #444; border-top: 5px solid #2196F3; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
         <p style="font-size: 20px; color: #aaa; margin-top: 20px;">Reconnecting automatically...</p>
         <style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
     </div>
 
-    <div class="version-footer">Client Version: v18</div>
+    <div class="version-footer">Client Version: v20</div>
 
     <script src="app.js?v=19"></script>
 </body>
