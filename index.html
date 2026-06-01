@@ -16,7 +16,8 @@
             input { border: 2px solid #555 !important; }
         }
         .version-footer { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #666; font-family: monospace; }
-        .mobile-card-tray { margin: 20px auto; min-height: 90px; text-align: center; display: flex; justify-content: center; flex-wrap: wrap; }
+        .mobile-card-tray { margin: 10px auto 25px auto; min-height: 90px; text-align: center; display: flex; justify-content: center; flex-wrap: wrap; }
+        .tray-label { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 0; font-weight: bold;}
     </style>
 </head>
 <body>
@@ -38,17 +39,26 @@
         <button onclick="placeBet()" style="width:80%; height:80px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">LOCK IN BET</button>
     </div>
 
-    <div id="waitingScreen" style="display:none; margin-top: 60px;">
+    <div id="waitingScreen" style="display:none; margin-top: 40px;">
         <div id="waitingContent">
             <h2>Bet Locked!</h2>
             <p style="font-size: 20px;">Look at the TV, waiting for others...</p>
         </div>
+        
+        <p class="tray-label" id="waitingDealerLabel" style="display:none;">Dealer Shows</p>
+        <div class="mobile-card-tray" id="waitingDealerCards"></div>
+
+        <p class="tray-label" id="waitingPlayerLabel" style="display:none;">Your Hand</p>
         <div class="mobile-card-tray" id="waitingCards"></div>
     </div>
 
-    <div id="actionScreen" style="display:none; margin-top: 40px;">
-        <h2 style="color: #2196F3; font-size: 35px; margin-bottom: 5px;">It's Your Turn!</h2>
+    <div id="actionScreen" style="display:none; margin-top: 30px;">
+        <h2 style="color: #2196F3; font-size: 35px; margin-bottom: 15px;">It's Your Turn!</h2>
         
+        <p class="tray-label">Dealer Shows</p>
+        <div class="mobile-card-tray" id="actionDealerCards"></div>
+        
+        <p class="tray-label">Your Hand</p>
         <div class="mobile-card-tray" id="actionCards"></div>
         
         <button onclick="sendAction('hit')" style="width:41%; height:120px; font-size:30px; background:#2196F3; color:white; border-radius:10px; margin-right:4%; border:none; font-weight:bold;">HIT</button>
@@ -85,6 +95,6 @@
 
     <div class="version-footer">Client Version: v20</div>
 
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
 </body>
 </html>
