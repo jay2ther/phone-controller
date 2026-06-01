@@ -35,10 +35,11 @@ function connectToCloud() {
             document.getElementById('bankText').innerText = "Bank: $" + data.currency;
             document.getElementById('betSlider').max = data.currency;
             document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
-            
             document.getElementById('login').style.display = 'none';
             
-            // FIXED: Look at individual lock variables before assigning sliders
+            // Wipe card graphics clean between game round transitions
+            renderMobileHand(null);
+
             if (data.is_locked) {
                 document.getElementById('bettingScreen').style.display = 'none';
                 document.getElementById('actionScreen').style.display = 'none';
@@ -74,6 +75,7 @@ function connectToCloud() {
         
         else if (data.action === "phase_changed") {
             if (data.phase === "BETTING") {
+                renderMobileHand(null); // Flush visual tray
                 document.getElementById('betSlider').value = 10;
                 document.getElementById('betDisplay').innerText = "$10";
                 document.getElementById('waitingScreen').style.display = 'none';
@@ -93,11 +95,13 @@ function connectToCloud() {
         else if (data.action === "your_turn") {
             document.getElementById('waitingScreen').style.display = 'none';
             document.getElementById('actionScreen').style.display = 'block';
+            if (data.cards) renderMobileHand(data.cards);
         }
         else if (data.action === "wait_turn") {
             document.getElementById('actionScreen').style.display = 'none';
             document.getElementById('waitingScreen').style.display = 'block';
             document.getElementById('waitingContent').innerHTML = "<h2 style='color:#666;'>Waiting...</h2><p style='font-size:20px;'>" + data.active_player + " is making a move.</p>";
+            if (data.cards) renderMobileHand(data.cards);
         }
     };
 
@@ -115,6 +119,63 @@ function connectToCloud() {
 }
 
 connectToCloud();
+
+// --- NEW PROCEDURAL MOBILE CARD PRESENTATION BUILDER ---
+function renderMobileHand(cards) {
+    const trays = [document.getElementById('waitingCards'), document.getElementById('actionCards')];
+    
+    trays.forEach(tray => {
+        if (!tray) return;
+        tray.innerHTML = ""; // Clear existing blocks
+        if (!cards || cards.length === 0) return;
+        
+        cards.forEach(cardStr => {
+            const parts = cardStr.split(" of ");
+            if (parts.length < 2) return;
+            
+            const val = parts[0];
+            const suit = parts[1];
+            let symbol = "";
+            let color = "#111111"; // Rich dark charcoal for Spades/Clubs
+            
+            if (suit === "Hearts") { symbol = "&hearts;"; color = "#d32f2f"; }
+            else if (suit === "Diamonds") { symbol = "&diams;"; color = "#d32f2f"; }
+            else if (suit === "Spades") { symbol = "&spades;"; }
+            else if (suit === "Clubs") { symbol = "&clubs;"; }
+            
+            const cardEl = document.createElement('div');
+            cardEl.style.cssText = `
+                display: inline-block; 
+                width: 58px; 
+                height: 82px; 
+                background: #ffffff; 
+                color: ${color}; 
+                border-radius: 6px; 
+                margin: 5px; 
+                box-shadow: 0 3px 6px rgba(0,0,0,0.3); 
+                vertical-align: top; 
+                font-family: sans-serif; 
+                border: 1px solid #ddd; 
+                text-align: left; 
+                padding: 6px; 
+                box-sizing: border-box; 
+                font-weight: bold;
+                animation: popIn 0.2s ease-out;
+            `;
+            
+            cardEl.innerHTML = `
+                <div style="font-size: 15px; line-height: 1; margin-bottom: 2px;">${val}</div>
+                <div style="font-size: 26px; text-align: center; line-height: 1; margin-top: 2px;">${symbol}</div>
+            `;
+            tray.appendChild(cardEl);
+        });
+    });
+}
+
+// Add a tiny animation rule inline for smooth card appearances
+const style = document.createElement('style');
+style.innerHTML = `@keyframes popIn { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }`;
+document.head.appendChild(style);
 
 window.onload = () => {
     try {
@@ -172,12 +233,4 @@ function setBalance() {
     document.getElementById('targetPlayer').value = "";
     document.getElementById('targetAmount').value = "";
     alert("Sent $" + amount + " to " + target + "!");
-}
-
-function grantMercy() {
-    const target = document.getElementById('mercyPlayer').value;
-    if (!target) { alert("Please enter a player name!"); return; }
-    ws.send(JSON.stringify({ action: "host_command", payload: { action: "grant_mercy", target_player: target } }));
-    document.getElementById('mercyPlayer').value = "";
-    alert("Mercy extended to " + target + "! Hand wiped clean.");
 }
