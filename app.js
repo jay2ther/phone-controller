@@ -98,7 +98,8 @@ function connectToCloud() {
         
         else if (data.action === "your_turn") {
             document.getElementById('waitingScreen').style.display = 'none';
-            document.getElementById('actionScreen').style.block = 'block';
+            // FIXED: Swapped out broken .style.block allocation rule
+            document.getElementById('actionScreen').style.display = 'block';
             
             if (data.cards) renderMobileCards(data.cards, 'actionCards');
             if (data.dealer_cards) renderMobileCards(data.dealer_cards, 'actionDealerCards');
@@ -135,7 +136,6 @@ function toggleLabels(show) {
     document.getElementById('waitingPlayerLabel').style.display = displayMode;
 }
 
-// UNIVERSAL MOBILE CARD PAINTER
 function renderMobileCards(cards, trayId) {
     const tray = document.getElementById(trayId);
     if (!tray) return;
@@ -146,7 +146,6 @@ function renderMobileCards(cards, trayId) {
         const cardEl = document.createElement('div');
         
         if (cardStr === "HIDDEN") {
-            // RENDER CARD BACK FOR OBSCURED CARDS
             cardEl.style.cssText = `
                 display: inline-block; 
                 width: 58px; 
@@ -163,7 +162,6 @@ function renderMobileCards(cards, trayId) {
                 animation: popIn 0.2s ease-out;
             `;
         } else {
-            // RENDER STANDARD CARD FACE
             const parts = cardStr.split(" of ");
             if (parts.length < 2) return;
             
@@ -177,7 +175,7 @@ function renderMobileCards(cards, trayId) {
             else if (suit === "Spades") { symbol = "&spades;"; }
             else if (suit === "Clubs") { symbol = "&clubs;"; }
             
-            cardEl.style.cssText = `
+            style_string = `
                 display: inline-block; 
                 width: 58px; 
                 height: 82px; 
@@ -195,6 +193,7 @@ function renderMobileCards(cards, trayId) {
                 font-weight: bold;
                 animation: popIn 0.2s ease-out;
             `;
+            cardEl.style.cssText = style_string;
             
             cardEl.innerHTML = `
                 <div style="font-size: 15px; line-height: 1; margin-bottom: 2px;">${val}</div>
