@@ -32,14 +32,18 @@ function connectToCloud() {
         try { data = JSON.parse(event.data); } catch (e) { return; }
         
         if (data.action === "profile_loaded") {
-            document.getElementById('bankText').innerText = "Bank: $" + data.currency;
-            document.getElementById('betSlider').max = data.currency;
-            document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
+            // FORCEFUL CLEANUP: Ensure login screen is hidden the absolute millisecond profile data lands
             document.getElementById('login').style.display = 'none';
             
-            renderMobileCards(null, 'waitingCards');
-            renderMobileCards(null, 'waitingDealerCards');
-            toggleLabels(false);
+            // Render and display persistent upper tracking HUD fields for regular players
+            if (mySessionName !== "DEALER") {
+                document.getElementById('gameHeader').style.display = 'flex';
+                document.getElementById('headerPlayerName').innerText = mySessionName;
+                document.getElementById('headerBankText').innerText = "Balance: $" + data.currency;
+            }
+            
+            document.getElementById('betSlider').max = data.currency;
+            document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
 
             if (data.is_locked) {
                 document.getElementById('bettingScreen').style.display = 'none';
@@ -51,13 +55,22 @@ function connectToCloud() {
                 document.getElementById('bettingScreen').style.display = 'none';
                 document.getElementById('actionScreen').style.display = 'none';
                 document.getElementById('waitingScreen').style.display = 'block';
-                document.getElementById('waitingContent').innerHTML = "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
+                
+                // Retain final hand cards on display at end of round rather than dumping them immediately
+                if (data.cards || data.dealer_cards) {
+                    document.getElementById('waitingContent').innerHTML = "<h2>Round Settled!</h2><p style='font-size: 18px; color:#aaa;'>Check the TV for payouts. Keeping cards up until next hand begins.</p>";
+                    toggleLabels(true);
+                    if (data.cards) renderMobileCards(data.cards, 'waitingCards');
+                    if (data.dealer_cards) renderMobileCards(data.dealer_cards, 'waitingDealerCards');
+                } else {
+                    document.getElementById('waitingContent').innerHTML = "<h2>Connected!</h2><p style='font-size: 20px;'>Waiting for the Dealer to start the betting phase...</p>";
+                    toggleLabels(false);
+                }
             } else if (data.current_phase === "BETTING") {
                 document.getElementById('waitingScreen').style.display = 'none';
                 document.getElementById('actionScreen').style.display = 'none';
                 document.getElementById('bettingScreen').style.display = 'block';
             } else {
-                document.getElementById('waitingScreen').style.display = 'none';
                 document.getElementById('bettingScreen').style.display = 'none';
                 document.getElementById('actionScreen').style.display = 'none';
                 document.getElementById('waitingScreen').style.display = 'block';
@@ -66,7 +79,7 @@ function connectToCloud() {
         }
         
         else if (data.action === "update_bank") {
-            document.getElementById('bankText').innerText = "Bank: $" + data.currency;
+            document.getElementById('headerBankText').innerText = "Balance: $" + data.currency;
             document.getElementById('betSlider').max = data.currency;
             if (parseInt(document.getElementById('betSlider').value) > data.currency) {
                 document.getElementById('betSlider').value = data.currency;
@@ -76,9 +89,16 @@ function connectToCloud() {
         
         else if (data.action === "phase_changed") {
             if (data.phase === "BETTING") {
+                // Safeguard: Ensure login menu stays down when moving between structural phases
+                document.getElementById('login').style.display = 'none';
+                
+                // Clear out active card displays ONLY when a new round explicitly starts
                 renderMobileCards(null, 'waitingCards');
                 renderMobileCards(null, 'waitingDealerCards');
+                renderMobileCards(null, 'actionCards');
+                renderMobileCards(null, 'actionDealerCards');
                 toggleLabels(false);
+                
                 document.getElementById('betSlider').value = 10;
                 document.getElementById('betDisplay').innerText = "$10";
                 document.getElementById('waitingScreen').style.display = 'none';
@@ -88,6 +108,7 @@ function connectToCloud() {
         }
 
         else if (data.action === "hand_locked") {
+            document.getElementById('login').style.display = 'none';
             document.getElementById('bettingScreen').style.display = 'none';
             document.getElementById('actionScreen').style.display = 'none';
             document.getElementById('waitingScreen').style.display = 'block';
@@ -96,13 +117,14 @@ function connectToCloud() {
         }
         
         else if (data.action === "your_turn") {
+            document.getElementById('login').style.display = 'none';
             document.getElementById('waitingScreen').style.display = 'none';
             document.getElementById('actionScreen').style.display = 'block';
-            
             if (data.cards) renderMobileCards(data.cards, 'actionCards');
             if (data.dealer_cards) renderMobileCards(data.dealer_cards, 'actionDealerCards');
         }
         else if (data.action === "wait_turn") {
+            document.getElementById('login').style.display = 'none';
             document.getElementById('actionScreen').style.display = 'none';
             document.getElementById('waitingScreen').style.display = 'block';
             document.getElementById('waitingContent').innerHTML = "<h2 style='color:#666;'>Waiting...</h2><p style='font-size:20px;'>" + data.active_player + " is making a move.</p>";
@@ -112,11 +134,9 @@ function connectToCloud() {
             if (data.dealer_cards) renderMobileCards(data.dealer_cards, 'waitingDealerCards');
         }
         
-        // --- NEW: INTERCEPT SYSTEM UPDATE FOR THE HOST SCREEN CONTROL BUTTON ---
         else if (data.action === "dealer_phase_update") {
             const stepBtn = document.getElementById('dealerStepBtn');
             if (!stepBtn) return;
-            
             if (data.current_phase === "DEALER_TURN") {
                 stepBtn.style.display = 'block';
                 stepBtn.innerText = data.button_text;
@@ -129,7 +149,7 @@ function connectToCloud() {
     ws.onclose = () => {
         console.log("Connection lost. Reconnecting...");
         clearInterval(pingInterval);
-        const screens = ['login', 'bettingScreen', 'waitingScreen', 'actionScreen', 'hostScreen'];
+        const screens = ['login', 'bettingScreen', 'waitingScreen', 'actionScreen', 'hostScreen', 'gameHeader'];
         screens.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
         const dcScreen = document.getElementById('disconnectScreen');
         if (dcScreen) dcScreen.style.display = 'block';
@@ -266,7 +286,6 @@ function sendAction(choice) { ws.send(JSON.stringify({ action: "button_press", p
 function changePhase(phase) { ws.send(JSON.stringify({ action: "host_command", payload: { action: "change_phase", phase: phase } })); }
 function skipTurn() { ws.send(JSON.stringify({ action: "host_command", payload: { action: "skip_turn" } })); }
 
-// NEW: TRIGGER METHOD SHIPPED BY THE HOST PANEL BUTTON BACK TO GODOT
 function sendDealerStep() {
     ws.send(JSON.stringify({ action: "host_command", payload: { action: "dealer_step" } }));
 }
