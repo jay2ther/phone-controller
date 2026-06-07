@@ -22,6 +22,7 @@
 </head>
 <body>
 
+    <!-- SCREEN 1: THE LOGIN FORM -->
     <div id="login" style="margin-top: 50px;">
         <h1 style="font-size: 40px; margin-bottom: 10px;">PARTY GAME</h1>
         <p style="margin-bottom: 30px;">Look at the TV for the Room Code!</p>
@@ -30,6 +31,7 @@
         <button onclick="joinGame()" style="font-size:24px; padding:20px; width:85%; background:#4CAF50; color:white; border-radius:15px; border: none; font-weight: bold;">JOIN GAME</button>
     </div>
 
+    <!-- SCREEN 2: THE BETTING PHASE -->
     <div id="bettingScreen" style="display:none; margin-top: 20px;">
         <h2 id="statusText" style="margin-bottom: 5px;">You're in!</h2>
         <h3 id="bankText" style="color: #4CAF50; margin-top: 0px; margin-bottom: 20px;">Bank: $0</h3>
@@ -39,25 +41,31 @@
         <button onclick="placeBet()" style="width:80%; height:80px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">LOCK IN BET</button>
     </div>
 
+    <!-- SCREEN 3: THE UNIVERSAL WAITING ROOM -->
     <div id="waitingScreen" style="display:none; margin-top: 40px;">
         <div id="waitingContent">
             <h2>Bet Locked!</h2>
             <p style="font-size: 20px;">Look at the TV, waiting for others...</p>
         </div>
         
+        <!-- DEALER ROW -->
         <p class="tray-label" id="waitingDealerLabel" style="display:none;">Dealer Shows</p>
         <div class="mobile-card-tray" id="waitingDealerCards"></div>
 
+        <!-- PLAYER ROW -->
         <p class="tray-label" id="waitingPlayerLabel" style="display:none;">Your Hand</p>
         <div class="mobile-card-tray" id="waitingCards"></div>
     </div>
 
+    <!-- SCREEN 4: THE ACTION PHASE -->
     <div id="actionScreen" style="display:none; margin-top: 30px;">
         <h2 style="color: #2196F3; font-size: 35px; margin-bottom: 15px;">It's Your Turn!</h2>
         
+        <!-- DEALER ROW -->
         <p class="tray-label">Dealer Shows</p>
         <div class="mobile-card-tray" id="actionDealerCards"></div>
         
+        <!-- PLAYER ROW -->
         <p class="tray-label">Your Hand</p>
         <div class="mobile-card-tray" id="actionCards"></div>
         
@@ -65,6 +73,7 @@
         <button onclick="sendAction('stand')" style="width:41%; height:120px; font-size:30px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">STAND</button>
     </div>
 
+    <!-- SCREEN 5: THE HOST DASHBOARD -->
     <div id="hostScreen" style="display:none; margin-top: 20px; text-align: center;">
         <h2 style="color: #FFC107; font-size: 35px; margin-bottom: 25px;">HOST DASHBOARD</h2>
         <div style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;">
@@ -75,6 +84,9 @@
         </div>
         <div style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#aaa;">2. Game Control</h3>
+            <!-- NEW: CONTROLLER STAGE TRIGGER TO DRIVE INCREMENTAL FLIPS/HITS -->
+            <button id="dealerStepBtn" onclick="sendDealerStep()" style="display:none; width:85%; height:70px; font-size:24px; background:#FF5722; color:white; border-radius:10px; border:none; margin-bottom:15px; font-weight:bold; box-shadow: 0 4px 10px rgba(255,87,34,0.4);">FLIP HOLE CARD</button>
+            
             <button onclick="changePhase('BETTING')" style="width:85%; height:60px; font-size:22px; background:#2196F3; color:white; border-radius:10px; border:none; margin-bottom:10px; font-weight:bold;">START BETTING</button><br>
             <button onclick="skipTurn()" style="width:85%; height:60px; font-size:22px; background:#FF9800; color:white; border-radius:10px; border:none; margin-bottom:10px; font-weight:bold;">SKIP CURRENT TURN</button><br>
             <button onclick="changePhase('ACTION')" style="width:85%; height:60px; font-size:22px; background:#f44336; color:white; border-radius:10px; border:none; font-weight:bold;">DEAL CARDS</button>
@@ -86,6 +98,7 @@
         </div>
     </div>
 
+    <!-- SCREEN 6: THE DISCONNECT WARNING -->
     <div id="disconnectScreen" style="display:none; margin-top: 100px; text-align: center;">
         <h2 style="color: #f44336; font-size: 40px; margin-bottom: 10px;">Connection Lost!</h2>
         <div style="width: 50px; height: 50px; border: 5px solid #444; border-top: 5px solid #2196F3; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
@@ -93,7 +106,7 @@
         <style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
     </div>
 
-    <div class="version-footer">Client Version: v20</div>
+    <div class="version-footer">Client Version: v22</div>
 
     <script src="app.js?v=22"></script>
 </body>
