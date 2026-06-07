@@ -18,9 +18,20 @@
         .version-footer { position: fixed; bottom: 10px; left: 0; width: 100%; text-align: center; font-size: 12px; color: #666; font-family: monospace; }
         .mobile-card-tray { margin: 10px auto 25px auto; min-height: 90px; text-align: center; display: flex; justify-content: center; flex-wrap: wrap; }
         .tray-label { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 0; font-weight: bold;}
+        
+        /* THE PERMANENT HUD BAR */
+        .game-hud { display: none; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 12px 18px; background: rgba(255,255,255,0.06); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); font-weight: bold; }
+        .hud-name { font-size: 18px; color: #aaa; }
+        .hud-bank { font-size: 20px; color: #4CAF50; }
     </style>
 </head>
 <body>
+
+    <!-- NEW: PERSISTENT IN-GAME HEADER -->
+    <div id="gameHeader" class="game-hud">
+        <span id="headerPlayerName" class="hud-name">---</span>
+        <span id="headerBankText" class="hud-bank">Balance: $0</span>
+    </div>
 
     <!-- SCREEN 1: THE LOGIN FORM -->
     <div id="login" style="margin-top: 50px;">
@@ -33,8 +44,7 @@
 
     <!-- SCREEN 2: THE BETTING PHASE -->
     <div id="bettingScreen" style="display:none; margin-top: 20px;">
-        <h2 id="statusText" style="margin-bottom: 5px;">You're in!</h2>
-        <h3 id="bankText" style="color: #4CAF50; margin-top: 0px; margin-bottom: 20px;">Bank: $0</h3>
+        <h2 id="statusText" style="margin-bottom: 25px;">You're in!</h2>
         <h2>Place Your Bet</h2>
         <h1 id="betDisplay" style="font-size: 60px; margin: 10px; color: #f44336;">$10</h1>
         <input type="range" id="betSlider" min="10" max="100" step="10" value="10" oninput="updateBetDisplay()" style="width: 80%; height: 40px; margin-bottom: 40px;"><br>
@@ -84,7 +94,6 @@
         </div>
         <div style="background: #222; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444;">
             <h3 style="margin-top:0; color:#aaa;">2. Game Control</h3>
-            <!-- NEW: CONTROLLER STAGE TRIGGER TO DRIVE INCREMENTAL FLIPS/HITS -->
             <button id="dealerStepBtn" onclick="sendDealerStep()" style="display:none; width:85%; height:70px; font-size:24px; background:#FF5722; color:white; border-radius:10px; border:none; margin-bottom:15px; font-weight:bold; box-shadow: 0 4px 10px rgba(255,87,34,0.4);">FLIP HOLE CARD</button>
             
             <button onclick="changePhase('BETTING')" style="width:85%; height:60px; font-size:22px; background:#2196F3; color:white; border-radius:10px; border:none; margin-bottom:10px; font-weight:bold;">START BETTING</button><br>
@@ -106,7 +115,7 @@
         <style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
     </div>
 
-    <div class="version-footer">Client Version: v22</div>
+    <div class="version-footer">Client Version: v24</div>
 
     <script src="app.js?v=23"></script>
 </body>
