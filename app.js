@@ -37,7 +37,6 @@ function connectToCloud() {
             document.getElementById('statusText').innerText = "Welcome, " + mySessionName + "!";
             document.getElementById('login').style.display = 'none';
             
-            // Clear trays on state load
             renderMobileCards(null, 'waitingCards');
             renderMobileCards(null, 'waitingDealerCards');
             toggleLabels(false);
@@ -98,7 +97,6 @@ function connectToCloud() {
         
         else if (data.action === "your_turn") {
             document.getElementById('waitingScreen').style.display = 'none';
-            // FIXED: Swapped out broken .style.block allocation rule
             document.getElementById('actionScreen').style.display = 'block';
             
             if (data.cards) renderMobileCards(data.cards, 'actionCards');
@@ -112,6 +110,19 @@ function connectToCloud() {
             toggleLabels(true);
             if (data.cards) renderMobileCards(data.cards, 'waitingCards');
             if (data.dealer_cards) renderMobileCards(data.dealer_cards, 'waitingDealerCards');
+        }
+        
+        // --- NEW: INTERCEPT SYSTEM UPDATE FOR THE HOST SCREEN CONTROL BUTTON ---
+        else if (data.action === "dealer_phase_update") {
+            const stepBtn = document.getElementById('dealerStepBtn');
+            if (!stepBtn) return;
+            
+            if (data.current_phase === "DEALER_TURN") {
+                stepBtn.style.display = 'block';
+                stepBtn.innerText = data.button_text;
+            } else {
+                stepBtn.style.display = 'none';
+            }
         }
     };
 
@@ -175,7 +186,7 @@ function renderMobileCards(cards, trayId) {
             else if (suit === "Spades") { symbol = "&spades;"; }
             else if (suit === "Clubs") { symbol = "&clubs;"; }
             
-            style_string = `
+            cardEl.style.cssText = `
                 display: inline-block; 
                 width: 58px; 
                 height: 82px; 
@@ -193,7 +204,6 @@ function renderMobileCards(cards, trayId) {
                 font-weight: bold;
                 animation: popIn 0.2s ease-out;
             `;
-            cardEl.style.cssText = style_string;
             
             cardEl.innerHTML = `
                 <div style="font-size: 15px; line-height: 1; margin-bottom: 2px;">${val}</div>
@@ -255,6 +265,11 @@ function placeBet() {
 function sendAction(choice) { ws.send(JSON.stringify({ action: "button_press", payload: { action: choice, name: mySessionName } })); }
 function changePhase(phase) { ws.send(JSON.stringify({ action: "host_command", payload: { action: "change_phase", phase: phase } })); }
 function skipTurn() { ws.send(JSON.stringify({ action: "host_command", payload: { action: "skip_turn" } })); }
+
+// NEW: TRIGGER METHOD SHIPPED BY THE HOST PANEL BUTTON BACK TO GODOT
+function sendDealerStep() {
+    ws.send(JSON.stringify({ action: "host_command", payload: { action: "dealer_step" } }));
+}
 
 function setBalance() {
     const target = document.getElementById('targetPlayer').value;
